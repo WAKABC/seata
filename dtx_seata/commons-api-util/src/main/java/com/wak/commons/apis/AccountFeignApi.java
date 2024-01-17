@@ -1,6 +1,6 @@
 package com.wak.commons.apis;
 
-import com.wak.commons.apis.fallback.AccountFeignFallbackApi;
+import com.wak.commons.apis.fallback.AccountFeignFallback;
 import com.wak.commons.resp.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +14,7 @@ import java.math.BigDecimal;
  * @Description TODO
  * @Version 1.0
  */
-@FeignClient(value = "dtx-account", fallback = AccountFeignFallbackApi.class)
+@FeignClient(value = "dtx-account", fallback = AccountFeignFallback.class)
 public interface AccountFeignApi {
     /**
      * 扣减金额 AT模式

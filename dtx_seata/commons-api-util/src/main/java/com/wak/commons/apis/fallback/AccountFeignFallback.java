@@ -14,7 +14,7 @@ import java.math.BigDecimal;
  * @Version 1.0
  */
 @Component
-public class AccountFeignFallbackApi implements AccountFeignApi {
+public class AccountFeignFallback implements AccountFeignApi {
     @Override
     public ApiResponse<String> decrease(Long userId, BigDecimal amount) {
         return ApiResponse.fail(ResultCodeEnum.INTERNAL_SERVER_ERROR.getCode(),

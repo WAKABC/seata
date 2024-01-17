@@ -1,0 +1,207 @@
+server:
+  port: 8082
+#seata config
+seata:
+  registry:
+    nacos:
+      server-addr: 192.168.118.103:8848
+      namespace: ""
+      group: SEATA_GROUP
+  tx-service-group: fsp_tx_group
+  service:
+    vgroup-mapping:
+      fsp_tx_group: default
+    grouplist:
+      default: 192.168.118.103:8091
+  #data-source-proxy-mode: AT
+spring:
+  cloud:
+    inetutils:
+      ignored-interfaces: 'VMware Virtual Ethernet Adapter for VMnet8'
+    #openfeign 配置
+    openfeign:
+      client:
+        config:
+          default:
+            #连接超时时间，为避免演示出错，设置为20秒
+            connect-timeout: 20000
+            #读取超时时间，为避免演示出错，设置为20秒
+            read-timeout: 20000
+      circuitbreaker:
+        enabled: true
+        group:
+          enabled: false
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://192.168.118.103:3306/seata_account?useUnicode=true&characterEncoding=UTF-8&useServerPrepStmts=false&rewriteBatchedStatements=true&useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+    druid:
+      initialSize: 5
+      minIdle: 10
+      maxActive: 20
+      maxWait: 60000
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      timeBetweenEvictionRunsMillis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      minEvictableIdleTimeMillis: 300000
+      # 配置一个连接在池中最大生存的时间，单位是毫秒
+      maxEvictableIdleTimeMillis: 900000
+      webStatFilter:
+        enabled: true
+      statViewServlet:
+        enabled: true
+        # 控制台管理用户名和密码
+        login-username: admin
+        login-password: admin
+      filter:
+        stat:
+          enabled: true
+          # 慢SQL记录
+          log-slow-sql: true
+          slow-sql-millis: 1000
+          merge-sql: true
+        wall:
+          config:
+            multi-statement-allow: true
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: "classpath:mapper/*.xml"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: ALWAYS
+    logfile:
+      external-file: /home/app/logs/seata-account-dev.log
+
+#基于次数断路器设置
+# resilience4j:
+#   circuitbreaker:
+#     configs:
+#       default:
+#         #设置50%的调用失败时打开断路器，超过失败请求百分⽐CircuitBreaker变为OPEN状态。
+#         failure-rate-threshold: 50
+#         # 滑动窗口的类型
+#         sliding-window-type: time_based
+#         #滑动窗⼝的⼤⼩配置COUNT_BASED表示6个请求，配置TIME_BASED表示6秒
+#         sliding-window-size: 6
+#         #断路器计算失败率或慢调用率之前所需的最小样本(每个滑动窗口周期)。
+#         #如果minimumNumberOfCalls为10，则必须最少记录10个样本，然后才能计算失败率。
+#         #如果只记录了9次调用，即使所有9次调用都失败，断路器也不会开启。
+#         minimum-number-of-calls: 6
+#         #是否启用自动从开启状态过渡到半开状态，默认值为true。如果启用，CircuitBreaker
+#         #将自动从开启状态过渡到半开状态，并允许一些请求通过以测试服务是否恢复正常
+#         automatic-transition-from-open-to-half-open-enabled: true
+#         #从OPEN到HALF_OPEN状态需要等待的时间
+#         wait-duration-in-open-state: 6s
+#         #半开状态允许的最大请求数，默认值为10。在半开状态下，CircuitBreaker将允许最
+#         #多permittedNumberOfCallsInHalfOpenState个请求通过，如果其中有任何一个请求失败，
+#         #CircuitBreaker将重新进入开启状态。
+#         permitted-number-of-calls-in-half-open-state: 2
+#         record-exceptions:
+#           - java.lang.Exception
+#     instances:
+#       dtx-order:
+#         base-config: default
+
+# Resilience4j CircuitBreaker 按照时间：TIME_BASED
+# resilience4j:
+#   timelimiter:
+#     configs:
+#       default:
+#         #坑，timelimiter 默认限制远程1s，超于1s就超时异常，配置了降级，就走降级逻辑
+#         timeout-duration: 10s
+#   circuitbreaker:
+#     configs:
+#       default:
+#         #设置50%的调用失败时打开断路器，超过失败请求百分⽐CircuitBreaker变为OPEN状态。
+#         failure-rate-threshold: 50
+#         #慢调用时间阈值，高于这个阈值的视为慢调用并增加慢调用比例。
+#         slow-call-duration-threshold: 1s
+#         #慢调用百分比峰值，断路器把调用时间⼤于slowCallDurationThreshold，视为慢调用，
+#         #当慢调用比例高于阈值，断路器打开，并开启服务降级
+#         slow-call-rate-threshold: 30
+#         # 滑动窗口的类型
+#         sliding-window-type: time_based
+#         #滑动窗口的大小配置，配置TIME_BASED表示2秒
+#         sliding-window-size: 2
+#         #断路器计算失败率或慢调用率之前所需的最小样本(每个滑动窗口周期)。
+#         minimum-number-of-calls: 2
+#         #半开状态允许的最大请求数，默认值为10。
+#         permitted-number-of-calls-in-half-open-state: 2
+#         #从OPEN到HALF_OPEN状态需要等待的时间
+#         wait-duration-in-open-state: 5s
+#         record-exceptions:
+#           - java.lang.Exception
+#     instances:
+#       tx-order:
+#         base-config: default
+
+#resilience4j bulkhead 的例子
+# resilience4j:
+#   bulkhead:
+#     configs:
+#       default:
+#         #隔离允许并发线程执行的最大数量
+#         max-concurrent-calls: 2
+#         #当达到并发调用数量时，新的线程的阻塞时间，我只愿意等待1秒，
+#         #过时不候进舱壁兜底fallback
+#         max-wait-duration: 2s
+#     instances:
+#       dtx-order:
+#         base-config: default
+#   timelimiter:
+#       configs:
+#         default:
+#           #坑，timelimiter 默认限制远程1s，超于1s就超时异常，配置了降级，就走降级逻辑
+#           timeout-duration: 10s
+
+#resilience4j bulkhead -THREADPOOL的例子
+#spring.cloud.openfeign.circuitbreaker.group.enabled 请设置为false
+#新启线程和原来主线程脱离
+# resilience4j:
+#   timelimiter:
+#     configs:
+#       default:
+#         timeout-duration: 10s
+#   thread-pool-bulkhead:
+#     configs:
+#       default:
+#         core-thread-pool-size: 1
+#         max-thread-pool-size: 1
+#         queue-capacity: 1
+#     instances:
+#       dtx-order:
+#         base-config: default
+
+#resilience4j ratelimiter限流的例子
+resilience4j:
+  ratelimiter:
+    configs:
+      default:
+        #在一次刷新周期内，允许执行的最大请求数
+        limit-for-period: 2
+        # 限流器每隔limitRefreshPeriod刷新一次，将允许处理的最大请求数量重置为limitForPeriod
+        limit-refresh-period: 1s
+        # 线程等待权限的默认等待时间
+        timeout-duration: 1
+    instances:
+      dtx-order:
+        base-config: default
+
+logging:
+  level:
+    io:
+      seata: info
+  file:
+    name: /home/app/logs/seata-account-dev.log
+  pattern:
+    file: "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){洋红色} %clr(- --){微弱} %clr([%15.15t]){微弱} %clr(%-40.40logger{39}){青色} %clr(:){微弱} %m%n%wEx"
